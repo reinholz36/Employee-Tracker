@@ -1,7 +1,7 @@
-const db = require('./db/connection');
+const connection = require('./db/connection');
 const inquirer = require('inquirer');
 const figlet = require('figlet');
-require('console.table');
+const consoleTable = require('console.table');
 
 //Figlet Title "Employee Manager"
 
