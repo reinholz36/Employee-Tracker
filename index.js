@@ -25,6 +25,7 @@ const startApp = async () => {
 }
 
 const startQuestion = () => {
+    addBlankLine();
     inquirer.prompt({
         name: 'action',
         type: 'rawlist',
@@ -94,6 +95,7 @@ const startQuestion = () => {
 }
 
 const viewAllEmployees = () => {
+    addBlankLine();
     connection.query(
         `SELECT employees.id AS Id, employees.first_name AS First_Name, employees.last_name AS Last_Name, roles.title AS Title, departments.department_name AS Departments, roles.salary AS Salary, CONCAT(manager.first_name, ' ', manager.last_name) AS Manager FROM employees LEFT JOIN roles on employees.role_id = roles.id LEFT JOIN departments on roles.department_id = departments.id LEFT JOIN employees manager on manager.id = employees.manager_id ORDER BY department_name ASC;`, 
         (err, res) => {
@@ -105,6 +107,7 @@ const viewAllEmployees = () => {
 }
 
 const addEmployee = () => {
+    addBlankLine();
     connection.query(`SELECT * FROM roles;`, (err, res) => {
         if (err) throw err;
         inquirer.prompt([
@@ -157,11 +160,120 @@ const addEmployee = () => {
     })
 }
 
-// removeEmployee()
+const removeEmployee = () => {
+    addBlankLine();
+    connection.query(`SELECT * FROM employees;`, (err, res) => {
+        if (err) throw err;
+        inquirer.prompt([
+            {
+                name: `employees`,
+                type: `input`,
+                message() {
+                    const employeesArray = [];
+                    res.forEach(({ id, first_name, last_name}) => {
+                        employeesArray.push(`${id} ${first_name} ${last_name}`);
+                    });
+                    console.log(`What is the Id number of the employee to remove?\n`)
+                    return employeesArray.join(`\n`)
+                },
+                validate: (answer) => {
+                    if (isNaN(answer)) {
+                        return "Please enter the employee's Id number.";
+                    }
+                    return true;
+                },
+            },
+        ])
+            .then((answer) => {
+                connection.query(`DELETE FROM employees WHERE ?`,
+                {
+                    id: (answer.employees)
+                },
+                (err, res) => {
+                    if (err) throw err
+                    console.log(`${res.affectedRows} Deleted\n`)
+                    viewAllEmployees();
+                }
+                )
+            })
+    })
+};
 
-// updateEmployeeRole()
+const updateEmployeeRole = () => {
+    addBlankLine();
+    connection.query(
+        `SELECT employees.id "Id", employees.first_name "First Name", employees.last_name "Last Name" FROM employees;`,
+        (err, res) => {
+            if (err) throw err;
+            console.table(res)
+        }
+    )
+    connection.query(`SELECT * FROM roles;`, (err, res) => {
+        if (err) throw err;
+        inquirer.prompt([
+            {
+                name: `employeeID`,
+                type: `input`,
+                message: `Input the Id number of the employee you want to update:`,
+                validate: (answer) => {
+                    if (isNaN(answer)) {
+                        return "Please enter the employee's Id number";
+                    }
+                    return true;
+                },
+            },
+            {
+                name: `roleID`,
+                type: `input`,
+                message() {
+                    const roleArray = [];
+                    res.forEach(({ title, id }) => {
+                        roleArray.push(id + ' = ' + title);
+                    });
+                    console.log(`What is the new role's Id number?\n`)
+                    return roleArray.join(`\n`)
+                },
+                validate: (answer) => {
+                    if (isNaN(answer)) {
+                        return "Please enter the new role's Id number.";
+                    }
+                    return true;
+                },
+            }
+        ])
+            .then((answer) => {
+                console.log(`Role: ${answer.roleID}`)
+                console.log(`Employee Id: ${answer.employeeID}`)
+                connection.query(`UPDATE employee SET ? WHERE ?;`,
+                    [
+                        {
+                            role_id: (answer.roleID),
+                        },
+                        {
+                            id: (answer.employeeID)
+                        },
+                    ],
+                    (err, res) => {
+                        if (err) throw err
+                        console.log(`${res.affectedRows} employee updated\n`)
+                        viewAllEmployees();
+                    }
+                )
+            })
+    })
+};
 
-// viewAllRoles()
+const viewAllRoles = () => {
+    addBlankLine();
+    connection.query(
+        `SELECT roles.id "Id", roles.title "Title" FROM roles;`,
+        (err, res) => {
+            if (err) throw err;
+            console.table(res)
+            startQuestion(); 
+        }
+    )
+}
 
 // addRole()
 
