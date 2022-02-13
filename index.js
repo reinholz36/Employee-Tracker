@@ -3,19 +3,9 @@ const inquirer = require('inquirer');
 const figlet = require('figlet');
 const consoleTable = require('console.table');
 
-// const openingScreen = () => {
-
-   
-// }
-
 const addBlankLine = () => {
     console.log(` \n`)
 }
-
-// const startApp = async () => {
-//     startQuestion();
-//     // setTimeout(viewAllEmployees, 10);
-// }
 
 const startQuestion = () => {
     addBlankLine();
@@ -443,6 +433,3 @@ figlet('Employee Tracker', function(err, data) {
     startQuestion();
 
 });
-
-// startQuestion();
-//   startApp();
