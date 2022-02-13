@@ -5,19 +5,23 @@ const consoleTable = require('console.table');
 
 const openingScreen = () => {
 
-    figlet('Hello World!!', function(err, data) {
+    figlet('Employee Tracker', function(err, data) {
         if (err) {
             console.log('Something went wrong...');
             console.dir(err);
             return;
         }
         console.log(data)
-        console.log(`\n`)
     });
 }
 
+const addBlankLine = () => {
+    console.log(` \n`)
+}
+
 const startApp = async () => {
-    openingScreen();
+    startQuestion();
+    // setTimeout(viewAllEmployees, 10);
 }
 
 const startQuestion = () => {
@@ -89,27 +93,87 @@ const startQuestion = () => {
         })
 }
 
-viewAllEmployees()
+const viewAllEmployees = () => {
+    connection.query(
+        `SELECT employees.id AS Id, employees.first_name AS First_Name, employees.last_name AS Last_Name, roles.title AS Title, departments.department_name AS Departments, roles.salary AS Salary, CONCAT(manager.first_name, ' ', manager.last_name) AS Manager FROM employees LEFT JOIN roles on employees.role_id = roles.id LEFT JOIN departments on roles.department_id = departments.id LEFT JOIN employees manager on manager.id = employees.manager_id ORDER BY department_name ASC;`, 
+        (err, res) => {
+            if (err) throw err;
+            console.table(res)
+        }
+    )
+    setTimeout(startQuestion, 30);
+}
 
-addEmployee()
+const addEmployee = () => {
+    connection.query(`SELECT * FROM roles;`, (err, res) => {
+        if (err) throw err;
+        inquirer.prompt([
+            {
+                name: `first_name`,
+                type: `input`,
+                message: `Enter Employee First Name:`
+            },
+            {
+                name: `last_name`,
+                type: `input`,
+                message: `Enter Employee Last Name:`
+            },
+            {
+                name: `role`,
+                type: `input`,
+                message() {
+                    const addEmployeeArray = [];
+                    res.forEach(({ title, id }) => {
+                        addEmployeeArray.push(id + ' = ' + title);
+                    });
+                    console.log(`What is the employee's role Id number?\n`)
+                    return addEmployeeArray.join(`\n`)
+                },
+                validate: (answer) => {
+                    if (isNaN(answer)) {
+                        return "Please enter the employee's role id number.";
+                    }
+                    return true;
+                },
+            }
+        ])
+            .then((answer) => {
+                connection.query(
+                    `INSERT INTO employees SET ?`,
+                    [
+                        {
+                            first_name: answer.first_name,
+                            last_name: answer.last_name,
+                            role_id: answer.role
+                        },
+                    ],
+                    (err, res) => {
+                        if (err) throw err;
+                        console.log(`${res.affectedRows} emloyee added. \n`)
+                        viewAllEmployees();
+                    }
+                )
+            })
+    })
+}
 
-removeEmployee()
+// removeEmployee()
 
-updateEmployeeRole()
+// updateEmployeeRole()
 
-viewAllRoles()
+// viewAllRoles()
 
-addRole()
+// addRole()
 
-removeRole()
+// removeRole()
 
-viewAllDepartments()
+// viewAllDepartments()
 
-addDepartment()
+// addDepartment()
 
-removeDepartment()
+// removeDepartment()
 
-endProgram()
+// endProgram()
 
 
 

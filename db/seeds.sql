@@ -1,3 +1,5 @@
+USE employeetracker_db;
+
 INSERT INTO departments (department_name)
 VALUE
 ('Sales'),
@@ -29,8 +31,6 @@ VALUE
 
 
 --View All Employees with id, first name, last name, title, departments, salary, manager
-USE employeetracker_db;
-
 SELECT 
 employees.id
 AS Id, 
@@ -53,7 +53,6 @@ LEFT JOIN employees manager on manager.id = employees.manager_id
 ORDER BY department_name ASC;
 
 --View by Roles with title
-USE employeetracker_db;
 
 SELECT
 roles.title
@@ -62,7 +61,6 @@ FROM employeetracker_db.roles
 ORDER BY roles.title ASC;
 
 --View by Roles with id, title, departments, salary
-USE employeetracker_db;
 
 SELECT
 roles.id
@@ -78,7 +76,6 @@ LEFT JOIN departments on roles.department_id = departments.id
 ORDER BY department_name ASC;
 
 --View Departments
-USE employeetracker_db;
 
 SELECT departments.department_name 
 AS Departments
