@@ -3,26 +3,19 @@ const inquirer = require('inquirer');
 const figlet = require('figlet');
 const consoleTable = require('console.table');
 
-const openingScreen = () => {
+// const openingScreen = () => {
 
-    figlet('Employee Tracker', function(err, data) {
-        if (err) {
-            console.log('Something went wrong...');
-            console.dir(err);
-            return;
-        }
-        console.log(data)
-    });
-}
+   
+// }
 
 const addBlankLine = () => {
     console.log(` \n`)
 }
 
-const startApp = async () => {
-    startQuestion();
-    // setTimeout(viewAllEmployees, 10);
-}
+// const startApp = async () => {
+//     startQuestion();
+//     // setTimeout(viewAllEmployees, 10);
+// }
 
 const startQuestion = () => {
     addBlankLine();
@@ -138,6 +131,11 @@ const addEmployee = () => {
                     }
                     return true;
                 },
+            },
+            {
+                name: `manager_id`,
+                type: `input`,
+                message: `Enter Manager's employee Id number:`
             }
         ])
             .then((answer) => {
@@ -147,7 +145,8 @@ const addEmployee = () => {
                         {
                             first_name: answer.first_name,
                             last_name: answer.last_name,
-                            role_id: answer.role
+                            role_id: answer.role,
+                            manager_id: answer.manager_id
                         },
                     ],
                     (err, res) => {
@@ -244,7 +243,7 @@ const updateEmployeeRole = () => {
             .then((answer) => {
                 console.log(`Role: ${answer.roleID}`)
                 console.log(`Employee Id: ${answer.employeeID}`)
-                connection.query(`UPDATE employee SET ? WHERE ?;`,
+                connection.query(`UPDATE employees SET ? WHERE ?;`,
                     [
                         {
                             role_id: (answer.roleID),
@@ -275,73 +274,175 @@ const viewAllRoles = () => {
     )
 }
 
-// addRole()
+const addRole = () => {
+    connection.query(`SELECT * FROM departments`, (err, res) => {
+        if (err) throw err;
+        inquirer.prompt([
+            {
+                name: `title`,
+                type: `input`,
+                message: `Add New Role:`
+            },
+            {
+                name: `salary`,
+                type: `input`,
+                message: `Add Salary:`,
+            },
+            {
+                name: `departments`,
+                type: `input`,
+                message() {
+                    const departmentArray = [];
+                    res.forEach(({ department_name, id }) => {
+                        departmentArray.push(id + ' = ' + department_name);
+                    });
+                    console.log(`Enter the Department's Id number?\n`)
+                    return departmentArray.join(`\n`)
+                },
+                validate: (answer) => {
+                    if (isNaN(answer)) {
+                        return "Please enter the Deartment's Id number.";
+                    }
+                    return true;
+                },
+            }
+        ])
+            .then((answer) => {
+                connection.query(
+                    `INSERT INTO roles SET ?`,
+                    [
+                        {
+                            title: answer.title,
+                            salary: answer.salary,
+                            department_id: answer.departments
+                        },
+                    ],
+                    (err, res) => {
+                        if (err) throw err;
+                        console.log(`${res.affectedRows} new role added. \n`)
+                        viewAllRoles();
+                    }
+                )
+            })
+    })
+};
 
-// removeRole()
+const removeRole = () => {
+    connection.query(`SELECT * FROM roles;`, (err, res) => {
+        if (err) throw err;
+        inquirer.prompt([
+            {
+                name: `roles`,
+                type: `rawlist`,
+                message: `Which role would you like to remove? \n`,
+                choices() {
+                    const roleArray = [];
+                    res.forEach(({ title }) => {
+                        roleArray.push(title);
+                    });
+                    return roleArray;
+                },
+            },
+        ])
+            .then((answer) => {
+                connection.query(`DELETE FROM roles WHERE ?`,
+                {
+                    title: (answer.roles)
+                },
+                (err, res) => {
+                    if (err) throw err
+                    console.log(`${res.affectedRows} Deleted \n`)
+                    viewAllRoles();
+                }
+                )
+            })
+    })
+}
 
-// viewAllDepartments()
+const viewAllDepartments = () => {
+    connection.query(
+        `SELECT * FROM departments;`, 
+        (err, res) => {
+            if (err) throw err;
+            console.table(res) 
+            startQuestion(); 
+        }
+    )
+}
 
-// addDepartment()
+const addDepartment = () => {
+    inquirer.prompt([
+        {
+            name: `name`,
+            type: `input`,
+            message: `Add New Department:`
+        }
+    ])
+        .then((answer) => {
+            connection.query(
+                `INSERT INTO departments SET ?`,
+                [
+                    {
+                        department_name: answer.name,
+                    },
+                ],
+                (err, res) => {
+                    if (err) throw err;
+                    console.log(`${res.affectedRows} new department added. \n`)
+                    viewAllDepartments();
+                }
+            )
+        })
+};
 
-// removeDepartment()
+const removeDepartment = () => {
+    connection.query(`SELECT * FROM departments;`,
+    (err, res) => {
+        if (err) throw err;
+        inquirer.prompt([
+            {
+                name: `departments`,
+                type: `rawlist`,
+                message: `Which department would you like to remove? \n`,
+                choices() {
+                    const departmentArray = [];
+                    res.forEach(({ department_name }) => {
+                        departmentArray.push(department_name);
+                    });
+                    return departmentArray;
+                },
+            },
+        ])
+            .then((answer) => {
+                connection.query(`DELETE FROM departments WHERE ?`,
+                {
+                    department_name: (answer.departments)
+                },
+                (err, res) => {
+                    if (err) throw err;
+                    console.log(`${res.affectedRows} Deleted \n`)
+                    viewAllDepartments();
+                }
+                )
+            })
+    }
+    )
+};
 
-// endProgram()
+const endProgram = () => {
+    connection.end();
+};
 
+figlet('Employee Tracker', function(err, data) {
+    if (err) {
+        console.log('Something went wrong...');
+        console.dir(err);
+        return;
+    }
+    console.log(data)
+    startQuestion();
 
+});
 
-
-
-
-
-
-
-
-
-
-
-
-
-//Figlet Title "Employee Manager"
-
-//What would you like to do? *helper text in dark gray (Use arrow keys)
-    //View All Empoyees
-        //table el from employees c1-3(Employee Id, first_name, last_name)
-        //center join? from roles table c4(title)
-        //center join? from departments table c5(department_name)
-        //right join? from roles table c6(salary)
-        //right join? from employees table based on manager_id combine (first_name, Last_name)
-
-    //Add Employee
-        //What is the employee's first_name?
-        //What is the employee's last_name?
-        //What is the employee's role?
-            //dropdown with role table(title)
-        //Who is the employee's manager?
-            //dropdown with all manager combined first_name last_name
-                //*first option is None* for dropdown
-
-    //Update Employee Role
-        //Which employee's role do you want to update?
-            //dropdown with all employees combined first_name last_name
-                //when employee is selected dropdown of all roles(title)
-
-    //View All Roles
-        //table *All columns from roles table*
-
-    //Add Role
-        //What is the name of the role?
-        //What is the salary of the role?
-        //Which department does the role belong to?
-            //drop down list of department_name
-
-    //View All Departments
-        //table *All columns from departments table*
-
-    // Add Department
-        //What is the name of the department?
-
-    //Quit
-
-  //*helper text in dark gray (Move up and down to reveal more choices)
-
-  startApp();
+// startQuestion();
+//   startApp();

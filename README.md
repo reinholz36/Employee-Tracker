@@ -11,7 +11,7 @@ I built an employee tracker using SQL, node.js and inquirer that can be run thro
   * Inquirer
 
 <a href="https://github.com/reinholz36/Employee-Tracker">
-<img src="#" alt="employee tracker title screen">
+<img src="./Employee-Tracker.jpg" alt="employee tracker title screen">
 </a>
 
 Link to video demonstration: 
